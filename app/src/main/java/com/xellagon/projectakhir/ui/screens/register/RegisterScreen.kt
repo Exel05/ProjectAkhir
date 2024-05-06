@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.R
+import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.ui.screens.destinations.HomeScreenDestination
 import com.xellagon.projectakhir.ui.screens.destinations.LoginScreenDestination
 import com.xellagon.projectakhir.ui.screens.homes.HomeScreen
@@ -58,8 +60,15 @@ fun RegisterScreen(
     navigator: DestinationsNavigator
 ) {
 
+    LaunchedEffect(true) {
+        if (Kotpref.id.isNotEmpty()) {
+            navigator.navigate(HomeScreenDestination)
+        }
+    }
+
     val registerState = viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
     var isEmailError by remember {
         mutableStateOf(false)
     }
@@ -199,7 +208,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(100.dp))
                 Row {
                     Text(
-                        text = "Not have an account?",
+                        text = "Already have an account?",
                         fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.width(5.dp))

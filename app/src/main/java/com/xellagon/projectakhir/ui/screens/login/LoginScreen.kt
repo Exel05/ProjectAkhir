@@ -1,5 +1,6 @@
 package com.xellagon.projectakhir.ui.screens.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,6 +42,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.R
 import com.xellagon.projectakhir.ui.screens.destinations.HomeScreenDestination
 import com.xellagon.projectakhir.ui.screens.destinations.RegisterScreenDestination
+import com.xellagon.projectakhir.utils.emailChecked
 
 @Destination
 @Composable
@@ -51,6 +53,10 @@ fun LoginScreen(
 
     val loginState = viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    var isEmailError by remember {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
@@ -69,7 +75,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xffFFA869))
-                .height(230.dp)
+                .height(220.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -116,8 +122,15 @@ fun LoginScreen(
                     value = email,
                     onValueChange = {
                         email = it
+                        isEmailError = it.text.emailChecked()
                     },
-                    modifier = Modifier.width(320.dp)
+                    modifier = Modifier.width(320.dp),
+                    isError = isEmailError,
+                    supportingText = {
+                        if (isEmailError) {
+                            Text(text = "Email Not Valid")
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row() {
@@ -150,11 +163,11 @@ fun LoginScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(180.dp))
-                Row{
-                   Text(
-                       text = "Not have an account?",
-                       fontSize = 16.sp
-                   )
+                Row {
+                    Text(
+                        text = "Not have an account?",
+                        fontSize = 16.sp
+                    )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "Sign Up",
@@ -170,13 +183,12 @@ fun LoginScreen(
 
             loginState.value.DisplayResult(
                 onLoading = { /*TODO*/ },
-                onSuccess ={ navigator.navigate(HomeScreenDestination)},
-            onError = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            })
-
+                onSuccess = { navigator.navigate(HomeScreenDestination) },
+                onError = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    Log.d("LOGIN", it)
+                })
         }
-
     }
 }
 

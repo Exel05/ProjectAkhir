@@ -1,7 +1,10 @@
 package com.xellagon.projectakhir.di
 
+import android.app.Application
 import com.xellagon.projectakhir.data.AnimalKnowledgeRepository
 import com.xellagon.projectakhir.data.AnimalKnowledgeRepositoryImpl
+import com.xellagon.projectakhir.data.datasource.local.FavDao
+import com.xellagon.projectakhir.data.datasource.local.FavDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,8 +34,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRepository(
-        client: SupabaseClient
+        client: SupabaseClient,
+        favDatabase: FavDatabase
     ) : AnimalKnowledgeRepository {
-        return AnimalKnowledgeRepositoryImpl(client)
+        return AnimalKnowledgeRepositoryImpl(client, favDatabase.getFavDao())
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavouriteDatabase(
+        app : Application
+    ) : FavDatabase {
+        return FavDatabase.getInstance(app)
     }
 }

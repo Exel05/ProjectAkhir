@@ -32,12 +32,17 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
-fun UpdateAnimalScreen() {
+fun UpdateAnimalScreen(
+    viewModel: UpdateAnimalViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -60,19 +65,19 @@ fun UpdateAnimalScreen() {
     ) {
 
         var animalName by remember {
-            mutableStateOf(TextFieldValue("Animal Name"))
+            mutableStateOf(TextFieldValue(""))
         }
 
         var description by remember {
-            mutableStateOf(TextFieldValue("Description"))
+            mutableStateOf(TextFieldValue(""))
         }
 
         var latinName by remember {
-            mutableStateOf(TextFieldValue("Latin Name"))
+            mutableStateOf(TextFieldValue(""))
         }
 
         var kingdom by remember {
-            mutableStateOf(TextFieldValue("Kingdom of Animal"))
+            mutableStateOf(TextFieldValue(""))
         }
 
         Column(
@@ -133,7 +138,16 @@ fun UpdateAnimalScreen() {
                     .fillMaxWidth()
             )
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                          viewModel.updateAnimal(
+                              id = 0,
+                              image = "",
+                              animal = animalName.text,
+                              desc = description.text,
+                              latin = latinName.text,
+                              kingdom = kingdom.text
+                          )
+                },
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
@@ -144,8 +158,8 @@ fun UpdateAnimalScreen() {
     }
 }
 
-@Preview
-@Composable
-fun result9() {
-    UpdateAnimalScreen()
-}
+//@Preview
+//@Composable
+//fun result9() {
+//    UpdateAnimalScreen()
+//}

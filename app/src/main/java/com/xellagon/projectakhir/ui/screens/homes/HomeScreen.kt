@@ -36,16 +36,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.R
+import com.xellagon.projectakhir.ui.screens.destinations.AnimalListScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    navigator: DestinationsNavigator
+) {
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -114,18 +117,25 @@ fun HomeScreen() {
 //            }
 
             items(10) {
-                HomeItem()
+                HomeItem(onClick = {
+                    navigator.navigate(AnimalListScreenDestination)
+                })
             }
         }
     }
 }
 
 @Composable
-fun HomeItem() {
-    OutlinedCard(modifier = Modifier
+fun HomeItem(onClick : ()-> Unit) {
+    OutlinedCard(
+        modifier = Modifier
         .padding(16.dp)
         .height(230.dp),
-        border = BorderStroke(5.dp, Color.White)) {
+        border = BorderStroke(5.dp, Color.White),
+        onClick = {
+            onClick()
+        }
+    ) {
         Column(modifier = Modifier
             .fillMaxSize()
             .background(Color(0xffE5E4E2)),
@@ -145,8 +155,8 @@ fun HomeItem() {
 }
 
 
-@Preview
-@Composable
-fun result2() {
-    HomeScreen()
-}
+//@Preview
+//@Composable
+//fun result2() {
+//    HomeScreen()
+//}
