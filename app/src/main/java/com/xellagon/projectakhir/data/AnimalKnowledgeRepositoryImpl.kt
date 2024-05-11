@@ -4,20 +4,35 @@ import android.util.Log
 import com.rmaprojects.apirequeststate.RequestState
 import com.xellagon.projectakhir.data.datasource.local.FavDao
 import com.xellagon.projectakhir.data.datasource.local.entity.Favourite
+import com.xellagon.projectakhir.data.datasource.remote.tables.SupabaseTables
 import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.source.Animal
 import com.xellagon.projectakhir.source.Users
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.result.PostgrestResult
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresListDataFlow
+import io.github.jan.supabase.realtime.postgresSingleDataFlow
+import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.storage.UploadSignedUrl
+import io.github.jan.supabase.storage.storage
+import io.github.jan.supabase.storage.upload
+import io.github.jan.supabase.storage.uploadAsFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import java.io.File
 import javax.inject.Inject
 import kotlin.math.log
 
@@ -50,6 +65,8 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
+                this.email = publicUser.email
+
             }
             emit(RequestState.Success(true))
         } catch (e: Exception) {
@@ -78,6 +95,7 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
+                this.email = publicUser.email
             }
             Log.d("ID USER", publicUser.id)
             emit(RequestState.Success(true))
@@ -86,16 +104,16 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getFavList(): Flow<List<Favourite>> {
-        TODO("Not yet implemented")
+    override fun getFavList(): Flow<List<Favourite>> = flow {
+        emitAll(favDao.getFavList())
     }
 
     override suspend fun insertFav(favourite: Favourite) {
-        TODO("Not yet implemented")
+        favDao.insertFav(favourite)
     }
 
     override suspend fun deleteFav(favourite: Favourite) {
-        TODO("Not yet implemented")
+        favDao.deleteFav(favourite)
     }
 
     override fun insertAnimal(
@@ -118,22 +136,29 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
         desc: String,
         latin: String,
         kingdom: String
-    ): Flow<RequestState<Animal>> {
+    ): Flow<RequestState<Boolean>> {
         return flow {
-            client.from("animal_knowledge").update(
-                update = {
-                    set("image", image)
-                    set("animal_name", animal)
-                    set("animal_desc", desc)
-                    set("animal_latin", latin)
-                    set("animal_kingdom", kingdom)
-                },
-                request = {
-                    filter {
-                        eq("id", id)
+            emit(RequestState.Loading)
+            try {
+                client.from("animal_knowledge").update(
+                    update = {
+                        set("image", image)
+                        set("animal_name", animal)
+                        set("animal_desc", desc)
+                        set("animal_latin", latin)
+                        set("animal_kingdom", kingdom)
+                    },
+                    request = {
+                        filter {
+                            eq("id", id)
+                        }
                     }
-                }
-            ).decodeSingle<Animal>()
+                )
+                emit(RequestState.Success(true))
+            } catch (e: Exception) {
+                emit(RequestState.Error(e.message.toString()))
+            }
+
         }
     }
 
@@ -150,28 +175,63 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
                         }.decodeList<Animal>()
                     )
                 )
-            } catch (e : Exception) {
+            } catch (e: Exception) {
                 emit(RequestState.Error(e.message.toString()))
                 Log.d("DELETE", e.toString())
             }
-
-
         }
     }
 
-    override fun getAnimal(): Flow<RequestState<List<Animal>>> {
-        return flow {
-            emit(RequestState.Loading)
-            try {
-                emit(
-                    RequestState.Success(
-                        client.from("animal_knowledge").select(Columns.ALL).decodeList<Animal>()
-                    )
-                )
-            } catch (e: Exception) {
-                emit(RequestState.Error(e.message.toString()))
-            }
-        }
+    private val getAnimalChannel = client.channel("getAnimalChannel")
+    private val animalChannel = client.channel("animalChanel")
+
+    @OptIn(SupabaseExperimental::class)
+    override suspend fun getAnimal(animalId: Int): Result<Flow<Animal>> {
+        val data = getAnimalChannel.postgresSingleDataFlow(
+            schema = "public",
+            table = SupabaseTables.ANIMAL_TABLE,
+            primaryKey = Animal::id
+        ) {
+            Animal::id eq animalId
+        }.flowOn(Dispatchers.IO)
+
+        getAnimalChannel.subscribe()
+
+        return Result.success(data)
+
     }
+
+
+    @OptIn(SupabaseExperimental::class)
+    override suspend fun getAllAnimal(): Result<Flow<List<Animal>>> {
+        animalChannel.unsubscribe()
+        val data = animalChannel.postgresListDataFlow(
+            schema = "public",
+            table = SupabaseTables.ANIMAL_TABLE,
+            primaryKey = Animal::id
+        ).flowOn(Dispatchers.IO)
+
+        animalChannel.subscribe()
+
+        return Result.success(data)
+    }
+
+    override suspend fun unSubscribeChannel() {
+        animalChannel.unsubscribe()
+        client.realtime.removeChannel(animalChannel)
+    }
+
+    override suspend fun unSubscribeAnimalChannel() {
+        getAnimalChannel.unsubscribe()
+        client.realtime.removeChannel(getAnimalChannel)
+    }
+
+    override suspend fun uploadFile(id: Int, file: File): String {
+        client.storage.from("photos").upload(id.toString(), file)
+        val result = client.storage.from("photos").createSignedUploadUrl(id.toString())
+        return result.url
+
+    }
+
 
 }

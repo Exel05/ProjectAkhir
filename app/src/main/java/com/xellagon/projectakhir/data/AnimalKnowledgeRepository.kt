@@ -7,8 +7,8 @@ import androidx.room.Query
 import com.rmaprojects.apirequeststate.RequestState
 import com.xellagon.projectakhir.data.datasource.local.entity.Favourite
 import com.xellagon.projectakhir.source.Animal
-import io.github.jan.supabase.postgrest.result.PostgrestResult
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface AnimalKnowledgeRepository {
 
@@ -40,12 +40,20 @@ interface AnimalKnowledgeRepository {
         desc : String,
         latin : String,
         kingdom : String
-    ) : Flow<RequestState<Animal>>
+    ) : Flow<RequestState<Boolean>>
 
     fun deleteAnimal(
         id: Int
     ) : Flow<RequestState<List<Animal>>>
 
-    fun getAnimal() : Flow<RequestState<List<Animal>>>
+    suspend fun getAnimal(animalId : Int) : Result<Flow<Animal>>
+
+    suspend fun getAllAnimal() : Result<Flow<List<Animal>>>
+
+    suspend fun unSubscribeChannel()
+
+    suspend fun unSubscribeAnimalChannel()
+
+    suspend fun uploadFile(id : Int, file : File): String
 
 }

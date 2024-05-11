@@ -39,8 +39,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 import com.xellagon.projectakhir.R
+import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.ui.screens.destinations.HomeScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.LoginScreenDestination
 import com.xellagon.projectakhir.ui.screens.destinations.RegisterScreenDestination
 import com.xellagon.projectakhir.utils.emailChecked
 
@@ -183,7 +186,14 @@ fun LoginScreen(
 
             loginState.value.DisplayResult(
                 onLoading = { /*TODO*/ },
-                onSuccess = { navigator.navigate(HomeScreenDestination) },
+                onSuccess = {
+                    navigator.navigate(HomeScreenDestination) {
+                        popUpTo(LoginScreenDestination){
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                            },
                 onError = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                     Log.d("LOGIN", it)

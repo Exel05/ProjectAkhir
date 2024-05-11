@@ -1,5 +1,7 @@
 package com.xellagon.projectakhir.ui.screens.updateanimal
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,14 +14,18 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,22 +33,49 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.xellagon.projectakhir.ui.screens.detail.DetailArguments
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination
+@Destination(navArgsDelegate = DetailArguments::class)
 @Composable
 fun UpdateAnimalScreen(
     viewModel: UpdateAnimalViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator
-) {
+    navigator: DestinationsNavigator,
+
+    ) {
+
+    val context = LocalContext.current
+    val animalState = viewModel.animalState.collectAsStateWithLifecycle()
+
+    var animalName by remember {
+        mutableStateOf(TextFieldValue(viewModel.navArgs.animal!!))
+    }
+
+    var description by remember {
+        mutableStateOf(TextFieldValue(viewModel.navArgs.desc!!))
+    }
+
+    var latinName by remember {
+        mutableStateOf(TextFieldValue(viewModel.navArgs.latin!!))
+    }
+
+    var kingdom by remember {
+        mutableStateOf(TextFieldValue(viewModel.navArgs.kingdom!!))
+    }
+
+
+
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -50,13 +83,21 @@ fun UpdateAnimalScreen(
                     Text(
                         text = "Update",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+                    IconButton(
+                        onClick = {
+
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 }
 
@@ -64,27 +105,12 @@ fun UpdateAnimalScreen(
         }
     ) {
 
-        var animalName by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
-
-        var description by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
-
-        var latinName by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
-
-        var kingdom by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
 
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(Color(0xffFFA869)),
+                .background(MaterialTheme.colorScheme.primary),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             IconButton(
@@ -139,27 +165,35 @@ fun UpdateAnimalScreen(
             )
             Button(
                 onClick = {
-                          viewModel.updateAnimal(
-                              id = 0,
-                              image = "",
-                              animal = animalName.text,
-                              desc = description.text,
-                              latin = latinName.text,
-                              kingdom = kingdom.text
-                          )
+                    viewModel.updateAnimal(
+                        id = viewModel.navArgs.id!!,
+                        image = "",
+                        animal = animalName.text,
+                        desc = description.text,
+                        latin = latinName.text,
+                        kingdom = kingdom.text
+                    )
                 },
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Update")
+                Text(
+                    text = "Update",
+                    color = MaterialTheme.colorScheme.background
+                )
             }
         }
+        animalState.value.DisplayResult(
+            onLoading = {
+                        CircularProgressIndicator()
+            },
+            onSuccess = {
+                navigator.navigateUp()
+            },
+            onError = {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 }
-
-//@Preview
-//@Composable
-//fun result9() {
-//    UpdateAnimalScreen()
-//}

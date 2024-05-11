@@ -11,8 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.ui.screens.NavGraphs
+import com.xellagon.projectakhir.ui.screens.destinations.HomeScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.LoginScreenDestination
 import com.xellagon.projectakhir.ui.theme.ProjectAkhirTheme
+import com.xellagon.projectakhir.utils.GlobalState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,9 +24,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ProjectAkhirTheme {
+            ProjectAkhirTheme(
+                darkTheme = GlobalState.isDarkMode
+            ) {
                 DestinationsNavHost(
-                    navGraph = NavGraphs.root
+                    navGraph = NavGraphs.root,
+                    startRoute = if (Kotpref.username.isEmpty()) LoginScreenDestination else HomeScreenDestination
                 )
             }
         }

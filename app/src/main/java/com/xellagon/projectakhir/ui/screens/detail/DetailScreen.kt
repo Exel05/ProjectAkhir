@@ -1,6 +1,8 @@
 package com.xellagon.projectakhir.ui.screens.detail
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,26 +15,49 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.xellagon.projectakhir.data.datasource.local.entity.Favourite
+import com.xellagon.projectakhir.ui.screens.destinations.FavouriteScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.UpdateAnimalScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination
+@Destination(navArgsDelegate = DetailArguments::class)
 @Composable
-fun DetailScreen() {
+fun DetailScreen(
+    viewModel: DetailViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
+
+    val animalState = viewModel.animalState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.connectToRealTime(viewModel.navArgs.id!!)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -40,31 +65,57 @@ fun DetailScreen() {
                     Text(
                         text = "Jenis Hewan",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = ""
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        val fav = Favourite(
+                            id = animalState.value.getSuccessData().id!!,
+                            image = animalState.value.getSuccessData().image,
+                            animal = animalState.value.getSuccessData().animalName,
+                            desc = animalState.value.getSuccessData().animalDesc,
+                            latin = animalState.value.getSuccessData().animalLatin,
+                            kingdom = animalState.value.getSuccessData().animalKingdom
+                        )
+                        viewModel.insertFav(fav)
+                        Toast.makeText(context, "Added to Favourite", Toast.LENGTH_SHORT).show()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = "",
                             tint = Color.Red
                         )
                     }
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigate(
+                            UpdateAnimalScreenDestination(
+                                navArgs = DetailArguments(
+                                    id = animalState.value.getSuccessData().id,
+                                    image = null,
+                                    animal = animalState.value.getSuccessData().animalName,
+                                    desc = animalState.value.getSuccessData().animalDesc,
+                                    latin = animalState.value.getSuccessData().animalLatin,
+                                    kingdom = animalState.value.getSuccessData().animalKingdom
+                                )
+                            )
+                        )
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.background
                         )
                     }
                 }
@@ -77,103 +128,118 @@ fun DetailScreen() {
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(Color(0xffFFA869))
+                .background(MaterialTheme.colorScheme.primary)
         ) {
-
-            Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxSize()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                        .background(Color.Black)
-                ) {
-
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(500.dp)
-                        .background(Color(0xffE5E4E2))
-                ) {
+            animalState.value.DisplayResult(
+                onLoading = {
+                    CircularProgressIndicator()
+                },
+                onSuccess = {
                     Column(
                         modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
+                            .fillMaxSize()
                     ) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        AsyncImage(
+                            model = "",
+                            contentDescription = "",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(230.dp)
+                                .background(Color.Gray)
+                        )
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .padding(16.dp)
+                                .fillMaxSize()
                         ) {
                             Text(
-                                text = "Nama Hewan",
-                                fontSize = 24.sp,
+                                text = it.animalName,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                fontSize = 30.sp,
+                                color = MaterialTheme.colorScheme.background
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .background(MaterialTheme.colorScheme.secondary),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Nama Latin",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 24.sp,
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = it.animalLatin,
+                                    fontSize = 20.sp,
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .background(MaterialTheme.colorScheme.secondary),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Kingdom",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 24.sp,
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = it.animalKingdom,
+                                    fontSize = 20.sp,
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text(
+                                text = "About ${it.animalName}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 30.sp,
+                                color = MaterialTheme.colorScheme.background
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = it.animalDesc,
+                                fontSize = 21.sp,
+                                color = MaterialTheme.colorScheme.background,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Description :",
-                            fontSize = 20.sp,
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Deskripsi Tentang Hewan",
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Nama Latin :",
-                            fontSize = 20.sp,
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Nama Latin Hewan",
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Kingdom :",
-                            fontSize = 20.sp,
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Kingdom Hewan",
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
                     }
-                }
-            }
-        }
 
+                },
+                onError = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.leaveRealTimeChannel()
+        }
     }
 }
 
-@Preview
-@Composable
-fun result6() {
-    DetailScreen()
-}
+data class DetailArguments(
+    val id: Int?,
+    val image: String?,
+    val animal: String?,
+    val desc: String?,
+    val latin: String?,
+    val kingdom: String?
+)

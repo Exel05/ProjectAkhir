@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,10 +25,30 @@ class AddViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         RequestState.Idle
     )
+    private val _photoState = MutableStateFlow<RequestState<Boolean>>(RequestState.Idle)
+    val photoState = _photoState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        RequestState.Idle
+    )
 
     fun insert(animal: Animal) {
         viewModelScope.launch {
             _state.emitAll(repository.insertAnimal(animal))
         }
+    }
+
+    fun uploadPhoto(id: Int, file: File) {
+        viewModelScope.launch {
+            _photoState.emit(RequestState.Loading)
+            try {
+                repository.uploadFile(id, file)
+            } catch (e: Exception) {
+                _photoState.emit(RequestState.Error(e.message.toString()))
+            }
+
+
+        }
+
     }
 }

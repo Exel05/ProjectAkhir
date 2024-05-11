@@ -1,7 +1,11 @@
 package com.xellagon.projectakhir.ui.screens.add
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +22,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,12 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -52,8 +59,6 @@ fun AddScreen(
     navigator: DestinationsNavigator
 ) {
 
-    val addState by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -62,13 +67,18 @@ fun AddScreen(
                     Text(
                         text = "Add",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 }
 
@@ -92,15 +102,30 @@ fun AddScreen(
             mutableStateOf(TextFieldValue(""))
         }
 
+        var selectedImageUri by remember {
+            mutableStateOf<Uri?>(null)
+        }
+
+        val singlePhotoPicker = rememberLauncherForActivityResult(
+            contract =ActivityResultContracts.PickVisualMedia() ,
+            onResult = {
+                selectedImageUri = it
+            }
+        )
+
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(Color(0xffFFA869)),
+                .background(MaterialTheme.colorScheme.primary),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
-                onClick = { /*TODO*/ },
+                onClick = {
+                          singlePhotoPicker.launch(
+                              PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                          )
+                },
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
@@ -108,12 +133,17 @@ fun AddScreen(
                     .background(Color.Gray)
             ) {
                 AsyncImage(
-                    model = null,
-                    contentDescription = ""
+                    model = selectedImageUri,
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxWidth(),
+                    contentScale = ContentScale.Crop
                 )
             }
             TextField(
                 value = animalName,
+                placeholder = {
+                    Text(text = "Animal Name")
+                },
                 onValueChange = {
                     animalName = it
                 },
@@ -123,6 +153,9 @@ fun AddScreen(
             )
             TextField(
                 value = description,
+                placeholder = {
+                    Text(text = "Description")
+                },
                 onValueChange = {
                     description = it
                 },
@@ -132,6 +165,9 @@ fun AddScreen(
             )
             TextField(
                 value = latinName,
+                placeholder = {
+                    Text(text = "Latin Name")
+                },
                 onValueChange = {
                     latinName = it
                 },
@@ -141,6 +177,9 @@ fun AddScreen(
             )
             TextField(
                 value = kingdom,
+                placeholder = {
+                    Text(text = "Kingdom")
+                },
                 onValueChange = {
                     kingdom = it
                 },
@@ -151,14 +190,17 @@ fun AddScreen(
             Button(
                 onClick = {
                     viewModel.insert(
-                    Animal(
-                        idUser = Kotpref.id,
-                        animalName = animalName.text,
-                        animalDesc = description.text,
-                        animalLatin = latinName.text,
-                        animalKingdom = kingdom.text
+                        Animal(
+                            idUser = Kotpref.id,
+                            animalName = animalName.text,
+                            animalDesc = description.text,
+                            animalLatin = latinName.text,
+                            animalKingdom = kingdom.text,
+
+                        )
                     )
-                ) },
+                    navigator.navigateUp()
+                },
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
@@ -166,14 +208,5 @@ fun AddScreen(
                 Text(text = "Add")
             }
         }
-        addState.DisplayResult(
-            onLoading = { /*TODO*/ },
-            onSuccess = {
-
-            },
-        onError = {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            Log.d("kjsdnvskdjv", it)
-        })
     }
 }

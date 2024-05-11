@@ -13,6 +13,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,13 +44,21 @@ fun UpdateProfileScreen() {
                     Text(
                         text = "Update",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+                    IconButton(
+                        onClick = {
+
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 }
 
@@ -61,15 +70,11 @@ fun UpdateProfileScreen() {
             mutableStateOf(TextFieldValue(""))
         }
 
-        var email by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
-
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(Color(0xffFFA869)),
+                .background(MaterialTheme.colorScheme.primary),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -82,22 +87,18 @@ fun UpdateProfileScreen() {
                     .padding(16.dp)
                     .fillMaxWidth()
             )
-            TextField(
-                value = username,
-                onValueChange = {
-                    username = it
-                },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-            )
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+
+                          },
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Update")
+                Text(
+                    text = "Update",
+                    color = MaterialTheme.colorScheme.background
+                )
             }
         }
     }

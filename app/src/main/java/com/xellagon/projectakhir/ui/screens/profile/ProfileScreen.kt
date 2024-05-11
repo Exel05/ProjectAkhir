@@ -18,6 +18,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -35,11 +36,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ramcosta.composedestinations.annotation.Destination
+import com.xellagon.projectakhir.data.kotpref.Kotpref
+import com.xellagon.projectakhir.utils.GlobalState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
 fun ProfileScreen() {
+    var checked by remember {
+        mutableStateOf(true)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -47,70 +54,89 @@ fun ProfileScreen() {
                     Text(
                         text = "Profile",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "")
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 }
 
             )
         }
     ) {
-        
-        var checked by remember {
-            mutableStateOf(true)
-        }
-        
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(Color(0xffFFA869)),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(MaterialTheme.colorScheme.primary)
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
-            Text(
-                text = "Username",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "username@gmail.com",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(50.dp))
-            Divider(color = Color.Black)
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
+            Column(
                 modifier = Modifier
                     .padding(16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(MaterialTheme.colorScheme.secondary),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Darkmode",
+                    text = Kotpref.username,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
+                    fontSize = 30.sp,
+                    color = MaterialTheme.colorScheme.background
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Switch(
-                    checked = checked
-                    , onCheckedChange = {
-                        checked = it
-                    }
+            }
+            Divider(color = MaterialTheme.colorScheme.background)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+            ) {
+                Text(
+                    text = "Settings",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.background
                 )
+                Spacer(modifier = Modifier.height(30.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "DarkMode",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = checked
+                        , onCheckedChange = {
+                            checked = it
+                            GlobalState.isDarkMode = it
+                            Kotpref.isDarkMode = it
+                        }
+                    )
+                }
             }
         }
     }

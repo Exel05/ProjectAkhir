@@ -25,11 +25,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +52,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.R
 import com.xellagon.projectakhir.ui.screens.destinations.AddScreenDestination
 import com.xellagon.projectakhir.ui.screens.destinations.DetailScreenDestination
+import com.xellagon.projectakhir.ui.screens.detail.DetailArguments
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
@@ -58,10 +62,18 @@ fun AnimalListScreen(
     navigator: DestinationsNavigator
 ) {
 
-    val listState by viewModel.listState.collectAsStateWithLifecycle()
-    val listAnimal = remember {
-        viewModel.listAnimal
+//    val listState by viewModel.listState.collectAsStateWithLifecycle()
+//    val listAnimal = remember {
+//        viewModel.listAnimal
+//    }
+
+    val animalState = viewModel.animalState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(true) {
+        viewModel.connextToRealTime()
     }
+
+
 
     Scaffold(
         topBar = {
@@ -70,13 +82,18 @@ fun AnimalListScreen(
                     Text(
                         text = "Jenis Hewan",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.background
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(Color(0xFFFFB580)),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 },
                 actions = {
@@ -84,7 +101,10 @@ fun AnimalListScreen(
                         navigator.navigate(AddScreenDestination)
                     }) {
                         Icon(
-                            imageVector = Icons.Default.Add, contentDescription = "")
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.background
+                        )
                     }
                 }
 
@@ -94,9 +114,9 @@ fun AnimalListScreen(
         Column(modifier = Modifier
             .padding(it)
             .fillMaxSize()
-            .background(Color(0xffFFA869)))
+            .background(MaterialTheme.colorScheme.primary))
         {
-            listState.DisplayResult(
+            animalState.value.DisplayResult(
                 onLoading = { /*TODO*/ },
                 onSuccess = {
                     LazyVerticalGrid(
@@ -104,15 +124,24 @@ fun AnimalListScreen(
                         modifier = Modifier
 
                     ) {
-                        items(listAnimal) { animal ->
+                        items(it) { animal ->
                             AnimalListItem(
                                 animal = animal.animalName,
                                 onClick = {
-                                navigator.navigate(DetailScreenDestination)
+                                          navigator.navigate(
+                                              DetailScreenDestination(
+                                                  navArgs = DetailArguments(
+                                                      id = animal.id,
+                                                      image = null,
+                                                      animal = animal.animalDesc,
+                                                      desc = animal.animalDesc,
+                                                      latin = animal.animalLatin,
+                                                      kingdom = animal.animalKingdom
+                                                  )
+                                              ))
                                           },
                                 onDelete = {
                                 viewModel.deleteAnimal(animal.id!!)
-                                Log.d("skdjfmnowr", animal.id!!.toString())
                             } )
                         }
                     }
@@ -121,18 +150,15 @@ fun AnimalListScreen(
 
                 })
         }
-
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.leaveRealTimeChannel()
+        }
     }
 }
 
-//data class DetailArguments(
-//    val id : Int?,
-//    val image : String?,
-//    val animal : String?,
-//    val desc : String?,
-//    val latin : String?,
-//    val kingdom : String?
-//)
+
 
 @Composable
 fun AnimalListItem( animal : String, onClick : ()-> Unit, onDelete : ()-> Unit) {
@@ -146,7 +172,7 @@ fun AnimalListItem( animal : String, onClick : ()-> Unit, onDelete : ()-> Unit) 
     ) {
         Column(modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xffE5E4E2)),
+            .background(MaterialTheme.colorScheme.secondary),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -166,7 +192,8 @@ fun AnimalListItem( animal : String, onClick : ()-> Unit, onDelete : ()-> Unit) 
             Text(
                 text = animal,
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp
+                fontSize = 22.sp,
+                color = MaterialTheme.colorScheme.background
             )
 
             Spacer(modifier = Modifier.height(12.dp))
