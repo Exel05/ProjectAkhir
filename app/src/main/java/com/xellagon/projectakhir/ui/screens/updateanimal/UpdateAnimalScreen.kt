@@ -91,7 +91,7 @@ fun UpdateAnimalScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-
+                            navigator.navigateUp()
                         }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,

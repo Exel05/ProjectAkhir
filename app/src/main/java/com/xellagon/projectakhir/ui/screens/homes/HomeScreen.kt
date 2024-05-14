@@ -149,15 +149,20 @@ fun HomeScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(modifier = Modifier.size(170.dp), onClick = {
+            Card(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .height(170.dp),
+                onClick = {
                 navigator.navigate(AnimalListScreenDestination)
             }) {
-                Column(modifier = Modifier
+                Row(modifier = Modifier
                     .fillMaxSize()
                     .background(Color(0xffE5E4E2)),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.carnivore),
                         contentDescription = "",
@@ -165,7 +170,7 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Animal",
+                        text = "Animals",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.background

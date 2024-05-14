@@ -24,6 +24,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,14 +36,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.data.kotpref.Kotpref
+import com.xellagon.projectakhir.ui.screens.destinations.UpdateProfileScreenDestination
 import com.xellagon.projectakhir.utils.GlobalState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    viewModel: ProfileViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
     var checked by remember {
         mutableStateOf(true)
     }
@@ -60,7 +67,9 @@ fun ProfileScreen() {
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigateUp()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "",
@@ -69,7 +78,16 @@ fun ProfileScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigate(
+                            UpdateProfileScreenDestination(
+                                navArgs = ProfileArguments(
+                                    id = Kotpref.id,
+                                    username = Kotpref.username
+                                )
+                            )
+                        )
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "",
@@ -142,8 +160,7 @@ fun ProfileScreen() {
     }
 }
 
-@Preview
-@Composable
-fun result10() {
-    ProfileScreen()
-}
+data class ProfileArguments(
+    val id : String,
+    val username : String
+)

@@ -1,5 +1,6 @@
 package com.xellagon.projectakhir.data
 
+import android.net.Uri
 import android.util.Log
 import com.rmaprojects.apirequeststate.RequestState
 import com.xellagon.projectakhir.data.datasource.local.FavDao
@@ -65,7 +66,6 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
-                this.email = publicUser.email
 
             }
             emit(RequestState.Success(true))
@@ -95,7 +95,6 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
-                this.email = publicUser.email
             }
             Log.d("ID USER", publicUser.id)
             emit(RequestState.Success(true))
@@ -182,6 +181,21 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateProfile(id: String, username: String): Flow<RequestState<Boolean>> {
+        return flow {
+            client.from("User").update(
+                update = {
+                    set("username", username)
+                },
+                request = {
+                    filter {
+                        eq("id", id)
+                    }
+                }
+            )
+        }
+    }
+
     private val getAnimalChannel = client.channel("getAnimalChannel")
     private val animalChannel = client.channel("animalChanel")
 
@@ -226,11 +240,11 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
         client.realtime.removeChannel(getAnimalChannel)
     }
 
-    override suspend fun uploadFile(id: Int, file: File): String {
-        client.storage.from("photos").upload(id.toString(), file)
-        val result = client.storage.from("photos").createSignedUploadUrl(id.toString())
-        return result.url
-
+    override suspend fun uploadFile(animalName: String, file: Uri): String {
+        client.storage.from("photos").upload("${Kotpref.username}/$animalName", file, true)
+        val result = client.storage.from("photos").publicUrl("${Kotpref.username}/$animalName")
+        Log.d("ANIMAL NAME", "ANIMAL NAME")
+        return result
     }
 
 

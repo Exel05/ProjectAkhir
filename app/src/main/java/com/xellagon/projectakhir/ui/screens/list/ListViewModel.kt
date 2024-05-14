@@ -29,12 +29,35 @@ class ListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _animalState = MutableStateFlow<RequestState<List<Animal>>>(RequestState.Loading)
-    val animalState = _animalState.asStateFlow().stateIn(
+    val animalState = _animalState.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _animalList = MutableStateFlow<RequestState<List<Animal>>>(RequestState.Idle)
+    val animalList = _animalList.asStateFlow().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        RequestState.Loading
+        RequestState.Idle
     )
 
+    private val _searchAnimal = MutableStateFlow("")
+    val searchAnimal = _searchAnimal.asStateFlow().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        ""
+    )
+
+    fun onToogleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            onSearchAnimalChange("")
+        }
+    }
+
+    fun onSearchAnimalChange(animal: String) {
+        _searchAnimal.value = animal
+    }
 
     fun deleteAnimal(id : Int) {
         viewModelScope.launch {
