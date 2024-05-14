@@ -29,7 +29,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.xellagon.projectakhir.R
 import com.xellagon.projectakhir.data.datasource.local.entity.Favourite
 import com.xellagon.projectakhir.ui.screens.destinations.FavouriteScreenDestination
 import com.xellagon.projectakhir.ui.screens.destinations.UpdateAnimalScreenDestination
@@ -71,7 +74,9 @@ fun DetailScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigateUp()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "",
@@ -103,7 +108,7 @@ fun DetailScreen(
                             UpdateAnimalScreenDestination(
                                 navArgs = DetailArguments(
                                     id = animalState.value.getSuccessData().id,
-                                    image = null,
+                                    image = animalState.value.getSuccessData().image,
                                     animal = animalState.value.getSuccessData().animalName,
                                     desc = animalState.value.getSuccessData().animalDesc,
                                     latin = animalState.value.getSuccessData().animalLatin,
@@ -140,12 +145,13 @@ fun DetailScreen(
                             .fillMaxSize()
                     ) {
                         AsyncImage(
-                            model = "",
+                            model = it.image,
                             contentDescription = "",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(230.dp)
-                                .background(Color.Gray)
+                                .height(230.dp),
+                            fallback = painterResource(id = R.drawable.carnivore),
+                            contentScale = ContentScale.Crop
                         )
                         Column(
                             modifier = Modifier
@@ -220,7 +226,6 @@ fun DetailScreen(
                             )
                         }
                     }
-
                 },
                 onError = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

@@ -39,6 +39,9 @@ class FavouriteViewModel @Inject constructor(
 
         }
     }
+    init {
+        getFav()
+    }
 
     fun deleteFav(favourite: Favourite) {
         viewModelScope.launch {
@@ -46,8 +49,6 @@ class FavouriteViewModel @Inject constructor(
         }
     }
 
-    init {
-        getFav()
-    }
+
 
 }

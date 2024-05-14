@@ -31,7 +31,6 @@ class DetailViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         RequestState.Loading
     )
-
     private val _favState = MutableStateFlow<RequestState<Boolean>>(RequestState.Idle)
     val favState = _favState.stateIn(
         viewModelScope,
@@ -52,7 +51,6 @@ class DetailViewModel @Inject constructor(
             }
         }
     }
-
     fun leaveRealTimeChannel() {
         viewModelScope.launch {
             repository.unSubscribeAnimalChannel()

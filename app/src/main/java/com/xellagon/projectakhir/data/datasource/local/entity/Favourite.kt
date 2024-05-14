@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class Favourite(
     @PrimaryKey(false)
     val id : Int,
-    val image : String?,
+    val image : String,
     val animal : String,
     val desc : String,
     val latin : String,

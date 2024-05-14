@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +62,7 @@ fun RegisterScreen(
 ) {
 
     LaunchedEffect(true) {
-        if (Kotpref.id.isNotEmpty()) {
+        if (Kotpref.id != null) {
             navigator.navigate(HomeScreenDestination)
         }
     }
@@ -143,7 +144,13 @@ fun RegisterScreen(
                     value = userName,
                     onValueChange = {
                         userName = it
-                    },
+                    },colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        errorTextColor = Color.Red,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                    ),
                     modifier = Modifier.width(320.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -163,7 +170,13 @@ fun RegisterScreen(
                     onValueChange = {
                         email = it
                         isEmailError = it.text.emailChecked()
-                    },
+                    },colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        errorTextColor = Color.Red,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                    ),
                     modifier = Modifier.width(320.dp),
                     isError = isEmailError,
                     supportingText = {
@@ -187,7 +200,13 @@ fun RegisterScreen(
                     value = password,
                     onValueChange = {
                         password = it
-                    },
+                    },colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        errorTextColor = Color.Red,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                    ),
                     modifier = Modifier.width(320.dp)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -230,7 +249,6 @@ fun RegisterScreen(
                     },
                     onError = {
                         Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                        Log.d("GEDAGEDIO", it.toString())
                     }
                 )
             }

@@ -1,6 +1,7 @@
 package com.xellagon.projectakhir.ui.screens.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,8 +29,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,16 +44,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 import com.xellagon.projectakhir.data.kotpref.Kotpref
+import com.xellagon.projectakhir.ui.screens.destinations.HomeScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.LoginScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.ProfileScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.RegisterScreenDestination
+import com.xellagon.projectakhir.ui.screens.destinations.UpdateProfileScreenDestination
 import com.xellagon.projectakhir.utils.GlobalState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    navigator: DestinationsNavigator
+) {
     var checked by remember {
         mutableStateOf(true)
+    }
+
+    var showAllertDialog by remember {
+        mutableStateOf(false)
     }
 
     Scaffold(
@@ -60,7 +83,9 @@ fun ProfileScreen() {
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigateUp()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "",
@@ -69,7 +94,16 @@ fun ProfileScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigate(
+                            UpdateProfileScreenDestination(
+                                navArgs = ProfileArguments(
+                                    id = Kotpref.id ?: "",
+                                    username = Kotpref.username ?: ""
+                                )
+                            )
+                        )
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "",
@@ -77,7 +111,6 @@ fun ProfileScreen() {
                         )
                     }
                 }
-
             )
         }
     ) {
@@ -97,7 +130,7 @@ fun ProfileScreen() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = Kotpref.username,
+                    text = Kotpref.username ?: "",
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,
                     color = MaterialTheme.colorScheme.background
@@ -129,11 +162,71 @@ fun ProfileScreen() {
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = checked
-                        , onCheckedChange = {
+                        checked = checked, onCheckedChange = {
                             checked = it
                             GlobalState.isDarkMode = it
                             Kotpref.isDarkMode = it
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.secondary)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .clickable {
+                                showAllertDialog = true
+                            }
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Log Out",
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+                if (showAllertDialog) {
+                    AlertDialog(
+                        title = { Text(text = "Logout") },
+                        text = {
+                            Text(
+                                text = "Are you sure you want to logout of this account?",
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        onDismissRequest = { showAllertDialog = false },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    Kotpref.id = null
+                                    Kotpref.username = null
+                                    navigator.navigate(LoginScreenDestination) {
+                                        popUpTo(ProfileScreenDestination) {
+                                            inclusive = true
+                                        }
+                                        popUpTo(HomeScreenDestination){
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                }) {
+                                Text(text = "Confirm")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    showAllertDialog = false
+                                }) {
+                                Text(text = "Cancel")
+                            }
                         }
                     )
                 }
@@ -142,8 +235,7 @@ fun ProfileScreen() {
     }
 }
 
-@Preview
-@Composable
-fun result10() {
-    ProfileScreen()
-}
+data class ProfileArguments(
+    val id: String,
+    val username: String
+)

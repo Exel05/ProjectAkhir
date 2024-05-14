@@ -6,11 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.xellagon.projectakhir.data.datasource.local.entity.Favourite
 
-@Database(version = 1, entities = [Favourite::class])
+@Database(version = 2, entities = [Favourite::class], exportSchema = true)
 abstract class FavDatabase : RoomDatabase() {
-
     abstract fun getFavDao() :FavDao
-
     companion object {
         @Volatile
         private var INSTANCE : FavDatabase? = null
@@ -20,9 +18,8 @@ abstract class FavDatabase : RoomDatabase() {
                     context,
                     FavDatabase::class.java,
                     "favourite.db"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
             }
         }
     }
-
 }

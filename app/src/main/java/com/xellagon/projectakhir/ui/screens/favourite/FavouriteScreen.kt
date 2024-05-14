@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.R
@@ -68,7 +70,9 @@ fun FavouriteScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        navigator.navigateUp()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "",
@@ -96,13 +100,14 @@ fun FavouriteScreen(
                     ) {
                         items(it) { favourite ->
                             FavouriteItem(
+                                image = favourite.image,
                                 animal = favourite.animal,
                                 onClick = {
                                     navigator.navigate(
                                         DetailScreenDestination(
                                             navArgs = DetailArguments(
                                                 id = favourite.id,
-                                                image = null,
+                                                image = favourite.image,
                                                 animal = favourite.animal,
                                                 desc = favourite.desc,
                                                 latin = favourite.latin,
@@ -110,8 +115,7 @@ fun FavouriteScreen(
                                             )
                                         )
                                     )
-                                },
-                                onDelete = {
+                                }, onDelete = {
                                     viewModel.deleteFav(
                                        favourite
                                     )
@@ -129,7 +133,7 @@ fun FavouriteScreen(
 }
 
 @Composable
-fun FavouriteItem(animal: String, onClick: () -> Unit, onDelete: () -> Unit) {
+fun FavouriteItem(image : String, animal: String, onClick: () -> Unit, onDelete: () -> Unit) {
     OutlinedCard(modifier = Modifier
         .padding(8.dp)
         .height(300.dp),
@@ -169,10 +173,12 @@ fun FavouriteItem(animal: String, onClick: () -> Unit, onDelete: () -> Unit) {
                     .height(160.dp)
                     .background(Color.Black)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.icon),
+                AsyncImage(
+                    model = image,
                     contentDescription = "",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+
                 )
             }
             Text(

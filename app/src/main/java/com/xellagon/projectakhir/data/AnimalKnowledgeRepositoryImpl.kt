@@ -1,5 +1,6 @@
 package com.xellagon.projectakhir.data
 
+import android.net.Uri
 import android.util.Log
 import com.rmaprojects.apirequeststate.RequestState
 import com.xellagon.projectakhir.data.datasource.local.FavDao
@@ -65,13 +66,11 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
-                this.email = publicUser.email
 
             }
             emit(RequestState.Success(true))
         } catch (e: Exception) {
             emit(RequestState.Error(e.toString()))
-            Log.d("REPOSITORY", e.toString())
         }
     }
 
@@ -95,7 +94,6 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
             Kotpref.apply {
                 this.id = publicUser.id
                 this.username = publicUser.username
-                this.email = publicUser.email
             }
             Log.d("ID USER", publicUser.id)
             emit(RequestState.Success(true))
@@ -130,27 +128,22 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
     }
 
     override fun updateAnimal(
-        id: Int,
-        image: String,
-        animal: String,
-        desc: String,
-        latin: String,
-        kingdom: String
+        animal: Animal,
     ): Flow<RequestState<Boolean>> {
         return flow {
             emit(RequestState.Loading)
             try {
                 client.from("animal_knowledge").update(
                     update = {
-                        set("image", image)
-                        set("animal_name", animal)
-                        set("animal_desc", desc)
-                        set("animal_latin", latin)
-                        set("animal_kingdom", kingdom)
+                        set("image", animal.image)
+                        set("animal_name", animal.animalName)
+                        set("animal_desc", animal.animalDesc)
+                        set("animal_latin", animal.animalLatin)
+                        set("animal_kingdom", animal.animalKingdom)
                     },
                     request = {
                         filter {
-                            eq("id", id)
+                            eq("id", animal.id!!)
                         }
                     }
                 )
@@ -179,6 +172,21 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
                 emit(RequestState.Error(e.message.toString()))
                 Log.d("DELETE", e.toString())
             }
+        }
+    }
+
+    override suspend fun updateProfile(id: String, username: String): Flow<RequestState<Boolean>> {
+        return flow {
+            client.from("User").update(
+                update = {
+                    set("username", username)
+                },
+                request = {
+                    filter {
+                        eq("id", id)
+                    }
+                }
+            )
         }
     }
 
@@ -226,11 +234,14 @@ class AnimalKnowledgeRepositoryImpl @Inject constructor(
         client.realtime.removeChannel(getAnimalChannel)
     }
 
-    override suspend fun uploadFile(id: Int, file: File): String {
-        client.storage.from("photos").upload(id.toString(), file)
-        val result = client.storage.from("photos").createSignedUploadUrl(id.toString())
-        return result.url
-
+    override suspend fun uploadFile(animalName: String, file: Uri): String {
+        client.storage
+            .from("photos")
+            .upload("${Kotpref.username}/$animalName.png", file, true)
+        val result = client.storage
+            .from("photos")
+            .publicUrl("${Kotpref.username}/$animalName.png")
+        return result
     }
 
 

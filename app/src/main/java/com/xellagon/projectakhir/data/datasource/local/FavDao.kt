@@ -10,14 +10,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavDao {
-
     @Query("SELECT * FROM favourite")
     fun getFavList(): Flow<List<Favourite>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFav(bookmark: Favourite)
-
     @Delete
     suspend fun deleteFav(bookmark: Favourite)
-
 }

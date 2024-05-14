@@ -1,8 +1,8 @@
 package com.xellagon.projectakhir.ui.screens.add
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,13 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,10 +40,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -50,6 +49,9 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.source.Animal
+import java.io.File
+import java.io.InputStream
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
@@ -59,6 +61,12 @@ fun AddScreen(
     navigator: DestinationsNavigator
 ) {
 
+    val context = LocalContext.current
+    val state = viewModel.state.collectAsStateWithLifecycle()
+
+    BackHandler(state.value.isLoading()) {
+
+    }
 
     Scaffold(
         topBar = {
@@ -73,7 +81,11 @@ fun AddScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(MaterialTheme.colorScheme.primary),
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        if (!state.value.isLoading()) {
+                            navigator.navigateUp()
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "",
@@ -107,7 +119,7 @@ fun AddScreen(
         }
 
         val singlePhotoPicker = rememberLauncherForActivityResult(
-            contract =ActivityResultContracts.PickVisualMedia() ,
+            contract = ActivityResultContracts.PickVisualMedia(),
             onResult = {
                 selectedImageUri = it
             }
@@ -122,9 +134,9 @@ fun AddScreen(
         ) {
             Card(
                 onClick = {
-                          singlePhotoPicker.launch(
-                              PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                          )
+                    singlePhotoPicker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
                 },
                 modifier = Modifier
                     .padding(16.dp)
@@ -188,25 +200,43 @@ fun AddScreen(
                     .fillMaxWidth()
             )
             Button(
+                enabled = !state.value.isLoading(),
                 onClick = {
                     viewModel.insert(
                         Animal(
-                            idUser = Kotpref.id,
+                            idUser = Kotpref.id ?: "",
                             animalName = animalName.text,
                             animalDesc = description.text,
                             animalLatin = latinName.text,
                             animalKingdom = kingdom.text,
-
-                        )
+                            image = selectedImageUri.toString(),
+                            id = null
+                        ),
+                        selectedImageUri
                     )
-                    navigator.navigateUp()
                 },
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary),
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Add")
+                Text(
+                    text = "Add",
+                    color = MaterialTheme.colorScheme.background
+                )
             }
+            state.value.DisplayResult(
+                onLoading = {
+                    CircularProgressIndicator()
+                },
+                onSuccess = {
+                    Toast.makeText(context, "Animal has been Added", Toast.LENGTH_SHORT).show()
+                    navigator.navigateUp()
+                },
+                onError = {
+                    Toast.makeText(context, "Internet Required", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 }

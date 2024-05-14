@@ -1,15 +1,17 @@
 package com.xellagon.projectakhir.ui.screens.updateanimal
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rmaprojects.apirequeststate.RequestState
 import com.xellagon.projectakhir.data.AnimalKnowledgeRepository
+import com.xellagon.projectakhir.data.kotpref.Kotpref
 import com.xellagon.projectakhir.source.Animal
 import com.xellagon.projectakhir.ui.screens.detail.DetailArguments
 import com.xellagon.projectakhir.ui.screens.navArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,26 +30,33 @@ class UpdateAnimalViewModel @Inject constructor(
 
     val navArgs: DetailArguments = savedStateHandle.navArgs()
 
-    private val _animalState = MutableStateFlow<RequestState<Boolean>>(RequestState.Loading)
+    private val _animalState = MutableStateFlow<RequestState<Boolean>>(RequestState.Idle)
     val animalState = _animalState.asStateFlow().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        RequestState.Loading
+        RequestState.Idle
     )
 
     fun updateAnimal(
-        id: Int,
-        image: String,
-        animal: String,
-        desc: String,
-        latin: String,
-        kingdom: String,
+        animal: Animal,
+        uri: Uri?
     ) {
         viewModelScope.launch {
-            _animalState.emitAll(
-                repository.updateAnimal(id, image, animal, desc, latin, kingdom)
-            )
-
+            if (uri == null) {
+                _animalState.emitAll(
+                    repository.updateAnimal(animal)
+                )
+            } else {
+                _animalState.emit(RequestState.Loading)
+                try {
+                    repository.uploadFile(animal.animalName, uri).let { url ->
+                        repository.updateAnimal(animal.copy(image = url)).collect()
+                        _animalState.emit(RequestState.Success(true))
+                    }
+                } catch (e : Exception) {
+                    _animalState.emit(RequestState.Error(e.message.toString()))
+                }
+            }
         }
     }
 

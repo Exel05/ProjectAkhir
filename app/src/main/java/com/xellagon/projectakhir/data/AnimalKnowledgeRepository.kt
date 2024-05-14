@@ -1,5 +1,6 @@
 package com.xellagon.projectakhir.data
 
+import android.net.Uri
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -34,17 +35,15 @@ interface AnimalKnowledgeRepository {
     ) : Flow<RequestState<Animal>>
 
     fun updateAnimal(
-        id : Int,
-        image : String,
-        animal : String,
-        desc : String,
-        latin : String,
-        kingdom : String
+        animal: Animal,
     ) : Flow<RequestState<Boolean>>
 
     fun deleteAnimal(
         id: Int
     ) : Flow<RequestState<List<Animal>>>
+
+
+    suspend fun updateProfile(id: String, username: String) : Flow<RequestState<Boolean>>
 
     suspend fun getAnimal(animalId : Int) : Result<Flow<Animal>>
 
@@ -54,6 +53,8 @@ interface AnimalKnowledgeRepository {
 
     suspend fun unSubscribeAnimalChannel()
 
-    suspend fun uploadFile(id : Int, file : File): String
+    suspend fun uploadFile(animalName : String, file : Uri): String
+
+
 
 }

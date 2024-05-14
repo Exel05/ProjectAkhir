@@ -18,8 +18,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -128,6 +131,13 @@ fun LoginScreen(
                         isEmailError = it.text.emailChecked()
                     },
                     modifier = Modifier.width(320.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        errorTextColor = Color.Red,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                    ),
                     isError = isEmailError,
                     supportingText = {
                         if (isEmailError) {
@@ -150,6 +160,13 @@ fun LoginScreen(
                     onValueChange = {
                         password = it
                     },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        errorTextColor = Color.Red,
+                        focusedLabelColor = Color.Black,
+                        unfocusedLabelColor = Color.Black,
+                    ),
                     modifier = Modifier.width(320.dp)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -183,7 +200,6 @@ fun LoginScreen(
                     )
                 }
             }
-
             loginState.value.DisplayResult(
                 onLoading = { /*TODO*/ },
                 onSuccess = {
